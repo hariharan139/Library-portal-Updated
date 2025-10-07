@@ -8,6 +8,15 @@ exports.borrowBook = async (req, res) => {
     const { bookId } = req.params;
     const { name, studentId, dept, email, phone } = req.body;
 
+    console.log("Incoming borrow request:", {
+      bookId,
+      name,
+      studentId,
+      dept,
+      email,
+      phone,
+    });
+
     const book = await Book.findById(bookId);
     if (!book) {
       return res.status(404).json({ message: "Book not found" });
@@ -44,9 +53,11 @@ exports.borrowBook = async (req, res) => {
       borrow: populatedBorrow,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error borrowing book", error: error.message });
+    console.error("❌ Error borrowing book:", error); // ADD THIS LINE
+    res.status(500).json({
+      message: "Error borrowing book",
+      error: error.message,
+    });
   }
 };
 exports.getTokenInfo = async (req, res) => {
@@ -134,5 +145,48 @@ exports.getWaitlist = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error fetching waitlist", error: error.message });
+  }
+};
+// ✅ Get logged-in student's active borrowed books
+exports.getMyBorrowedBooks = async (req, res) => {
+  try {
+    const studentId = req.student._id; // ✅ use req.student
+    const borrows = await Borrow.find({
+      studentId,
+      status: "active",
+    })
+      .populate("bookId")
+      .sort({ issueDate: -1 });
+
+    res.json({
+      success: true,
+      count: borrows.length,
+      data: borrows,
+    });
+  } catch (error) {
+    console.error("Error fetching borrowed books:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching borrowed books",
+    });
+  }
+};
+
+// ✅ Get logged-in student's borrow history (all)
+exports.getMyHistory = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+
+    const history = await Borrow.find({ studentId })
+      .populate("bookId")
+      .populate("studentId")
+      .sort({ issueDate: -1 });
+
+    res.json(history);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching history",
+      error: error.message,
+    });
   }
 };

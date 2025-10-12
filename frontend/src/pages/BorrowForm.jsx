@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-
 const BorrowForm = () => {
   const { bookId } = useParams();
   const navigate = useNavigate();
@@ -10,20 +9,15 @@ const BorrowForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [student, setStudent] = useState(null);
-
   useEffect(() => {
-    // Check if student is logged in
     const token = localStorage.getItem("studentToken");
     const studentInfo = localStorage.getItem("studentInfo");
-
     if (token && studentInfo) {
       setIsLoggedIn(true);
       setStudent(JSON.parse(studentInfo));
     }
-
     fetchBookDetails();
   }, [bookId]);
-
   const fetchBookDetails = async () => {
     try {
       const response = await axiosInstance.get(`/book/${bookId}`);
@@ -34,7 +28,6 @@ const BorrowForm = () => {
       setLoading(false);
     }
   };
-
   const handleBorrow = async () => {
     setSubmitting(true);
     try {
@@ -54,7 +47,6 @@ const BorrowForm = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       const borrowToken = response.data.borrow.token;
       alert("Book borrowed successfully!");
       navigate(`/token/${borrowToken}`);
@@ -64,16 +56,12 @@ const BorrowForm = () => {
       setSubmitting(false);
     }
   };
-
   if (loading) {
     return <div className="loading">Loading...</div>;
   }
-
   if (!book) {
     return <div className="error-message">Book not found</div>;
   }
-
-  // If not logged in, show login prompt
   if (!isLoggedIn) {
     return (
       <div className="borrow-auth-required">
@@ -100,8 +88,6 @@ const BorrowForm = () => {
       </div>
     );
   }
-
-  // If logged in, show borrow confirmation
   return (
     <div className="borrow-form-page">
       <div className="form-container">

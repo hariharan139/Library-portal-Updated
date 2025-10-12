@@ -1,34 +1,33 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [isStudentLoggedIn, setIsStudentLoggedIn] = useState(false);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const {
+    isStudentAuthenticated,
+    isAdminAuthenticated,
+    logoutStudent,
+    logoutAdmin,
+  } = useAuth();
 
-  // Check login status when component mounts or storage changes
-  useEffect(() => {
-    const studentToken = localStorage.getItem("studentToken");
-    const adminLoggedIn = localStorage.getItem("adminLoggedIn");
-
-    setIsStudentLoggedIn(!!studentToken);
-    setIsAdminLoggedIn(!!adminLoggedIn);
-  }, []);
-
-  // Logout Handler
+  // Handle logout
   const handleLogout = () => {
-    if (isStudentLoggedIn) {
-      localStorage.removeItem("studentToken");
-      localStorage.removeItem("studentInfo");
-      setIsStudentLoggedIn(false);
+    if (isStudentAuthenticated) {
+      logoutStudent();
       alert("Student logged out successfully!");
-    } else if (isAdminLoggedIn) {
-      localStorage.removeItem("adminLoggedIn");
-      setIsAdminLoggedIn(false);
+    }
+    if (isAdminAuthenticated) {
+      logoutAdmin();
       alert("Admin logged out successfully!");
     }
     navigate("/");
   };
+
+  // Corrected states to prevent mixed UI
+  const showStudentNav = isStudentAuthenticated && !isAdminAuthenticated;
+  const showAdminNav = isAdminAuthenticated && !isStudentAuthenticated;
+  const showLoginNav = !isStudentAuthenticated && !isAdminAuthenticated;
 
   return (
     <nav className="navbar">
@@ -44,22 +43,17 @@ const Navbar = () => {
             </Link>
           </li>
 
-          <li className="nav-item">
-            <Link to="/borrowed" className="nav-link">
-              Borrowed Books
-            </Link>
-          </li>
+          {/* Student Login */}
+          {showLoginNav && (
+            <li className="nav-item">
+              <Link to="/student/login" className="nav-link">
+                🎓 Student Login
+              </Link>
+            </li>
+          )}
 
-          {/* 👇 Dynamic Login / Dashboard Links */}
-          {!isStudentLoggedIn && !isAdminLoggedIn ? (
-            <>
-              <li className="nav-item">
-                <Link to="/student/login" className="nav-link">
-                  🎓 Student Login
-                </Link>
-              </li>
-            </>
-          ) : isStudentLoggedIn ? (
+          {/* Student Dashboard + Logout */}
+          {showStudentNav && (
             <>
               <li className="nav-item">
                 <Link to="/student/dashboard" className="nav-link">
@@ -72,7 +66,10 @@ const Navbar = () => {
                 </button>
               </li>
             </>
-          ) : (
+          )}
+
+          {/* Admin Dashboard + Logout */}
+          {showAdminNav && (
             <>
               <li className="nav-item">
                 <Link to="/admin/dashboard" className="nav-link">

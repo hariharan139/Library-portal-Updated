@@ -6,6 +6,7 @@ const BooksList = () => {
   const { category } = useParams();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchBooks();
@@ -16,11 +17,18 @@ const BooksList = () => {
       setLoading(true);
       const response = await axiosInstance.get(`/books/${category}`);
       setBooks(response.data);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching books:", error);
+    } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  // Optional: call this after borrowing a book
+  const handleBorrowed = () => {
+    setRefreshing(true);
+    fetchBooks(); // re-fetch latest counts
   };
 
   if (loading) {
@@ -63,7 +71,11 @@ const BooksList = () => {
                 <span className="book-copies">
                   {book.availableCopies} of {book.totalCopies} available
                 </span>
-                <Link to={`/book/${book._id}`} className="btn-view">
+                <Link
+                  to={`/book/${book._id}`}
+                  className="btn-view"
+                  onClick={handleBorrowed} // optional trigger after borrow
+                >
                   View Details
                 </Link>
               </div>

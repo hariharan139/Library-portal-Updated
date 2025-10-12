@@ -7,8 +7,6 @@ const WaitlistPage = () => {
   const navigate = useNavigate();
   const [book, setBook] = useState(null);
   const [waitlist, setWaitlist] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     studentId: "",
@@ -16,59 +14,44 @@ const WaitlistPage = () => {
     email: "",
     phone: "",
   });
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchBookAndWaitlist();
+    (async () => {
+      try {
+        const [bookRes, waitRes] = await Promise.all([
+          axiosInstance.get(`/book/${bookId}`),
+          axiosInstance.get(`/waitlist/${bookId}`),
+        ]);
+        setBook(bookRes.data);
+        setWaitlist(waitRes.data);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [bookId]);
 
-  const fetchBookAndWaitlist = async () => {
-    try {
-      const bookResponse = await axiosInstance.get(`/book/${bookId}`);
-      setBook(bookResponse.data);
-
-      const waitlistResponse = await axiosInstance.get(`/waitlist/${bookId}`);
-      setWaitlist(waitlistResponse.data);
-
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-
     try {
-      const response = await axiosInstance.post(
-        `/waitlist/${bookId}`,
-        formData
-      );
-      alert(
-        `${response.data.message}. Your position: ${response.data.position}`
-      );
+      const res = await axiosInstance.post(`/waitlist/${bookId}`, formData);
+      alert(`${res.data.message}. Your position: ${res.data.position}`);
       navigate(`/book/${bookId}`);
-    } catch (error) {
-      alert(error.response?.data?.message || "Error joining waitlist");
+    } catch (err) {
+      alert(err.response?.data?.message || "Error joining waitlist");
       setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
-
-  if (!book) {
-    return <div className="error-message">Book not found</div>;
-  }
+  if (loading) return <div className="loading">Loading...</div>;
+  if (!book) return <div className="error-message">Book not found</div>;
 
   return (
     <div className="waitlist-page">
@@ -88,79 +71,40 @@ const WaitlistPage = () => {
         <div className="waitlist-info">
           <h3>How it works:</h3>
           <ul>
-            <li>Join the waitlist by filling out the form below</li>
-            <li>
-              You'll be notified via email when the book becomes available
-            </li>
-            <li>You'll have 48 hours to borrow the book once notified</li>
+            <li>Fill the form to join the waitlist</li>
+            <li>You'll get an email when the book is available</li>
+            <li>You’ll have 48 hours to borrow it</li>
           </ul>
         </div>
 
         <form onSubmit={handleSubmit} className="borrow-form">
-          <div className="form-group">
-            <label htmlFor="name">Full Name *</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              placeholder="Enter your full name"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="studentId">Roll Number *</label>
-            <input
-              type="text"
-              id="studentId"
-              name="studentId"
-              value={formData.studentId}
-              onChange={handleChange}
-              required
-              placeholder="Enter your roll number"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="dept">Department *</label>
-            <input
-              type="text"
-              id="dept"
-              name="dept"
-              value={formData.dept}
-              onChange={handleChange}
-              required
-              placeholder="Enter your department"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="email">Email *</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              placeholder="Enter your email"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="phone">Phone Number *</label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              placeholder="Enter your phone number"
-            />
-          </div>
+          {["name", "studentId", "dept", "email", "phone"].map((field) => (
+            <div key={field} className="form-group">
+              <label htmlFor={field}>
+                {field === "studentId"
+                  ? "Roll Number"
+                  : field.charAt(0).toUpperCase() + field.slice(1)}{" "}
+                *
+              </label>
+              <input
+                type={
+                  field === "email"
+                    ? "email"
+                    : field === "phone"
+                    ? "tel"
+                    : "text"
+                }
+                id={field}
+                name={field}
+                value={formData[field]}
+                onChange={handleChange}
+                required
+                placeholder={`Enter your ${
+                  field === "studentId" ? "roll number" : field
+                }`}
+              />
+            </div>
+          ))}
 
           <div className="form-actions">
             <button

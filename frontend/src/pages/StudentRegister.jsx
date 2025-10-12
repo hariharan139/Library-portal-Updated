@@ -21,7 +21,6 @@ const StudentRegister = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // Clear error for this field
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: "" });
     }
@@ -29,7 +28,6 @@ const StudentRegister = () => {
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.studentId.trim())
       newErrors.studentId = "Roll number is required";
@@ -37,11 +35,8 @@ const StudentRegister = () => {
     if (!formData.password) newErrors.password = "Password is required";
     else if (formData.password.length < 6)
       newErrors.password = "Password must be at least 6 characters";
-
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
-    }
-
     if (!formData.dept.trim()) newErrors.dept = "Department is required";
     if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
 
@@ -51,9 +46,7 @@ const StudentRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
-
     setLoading(true);
 
     try {
@@ -66,6 +59,9 @@ const StudentRegister = () => {
         "studentInfo",
         JSON.stringify(response.data.student)
       );
+
+      // Trigger event for Navbar update
+      window.dispatchEvent(new Event("student-login"));
 
       alert("Registration successful!");
       navigate("/student/dashboard");

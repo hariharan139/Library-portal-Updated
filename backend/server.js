@@ -2,33 +2,21 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-
-// Load routes
 const bookRoutes = require("./routes/bookRoutes");
 const borrowRoutes = require("./routes/borrowRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const authRoutes = require("./routes/authRoutes"); // NEW
-
-// Load env vars
+const authRoutes = require("./routes/authRoutes");
 dotenv.config();
 
 const app = express();
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Connect to database
 connectDB();
-
-// Mount routes
-app.use("/api/auth", authRoutes); // NEW - Authentication routes
+app.use("/api/auth", authRoutes);
 app.use("/api", bookRoutes);
 app.use("/api", borrowRoutes);
 app.use("/api/admin", adminRoutes);
-
-// Root route
 app.get("/", (req, res) => {
   res.json({
     message: "Library Portal API is running...",
@@ -40,8 +28,6 @@ app.get("/", (req, res) => {
     },
   });
 });
-
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error("Error:", err.stack);
   res.status(err.statusCode || 500).json({
@@ -50,8 +36,6 @@ app.use((err, req, res, next) => {
     error: process.env.NODE_ENV === "development" ? err.stack : {},
   });
 });
-
-// Handle 404 routes
 app.use((req, res) => {
   res.status(404).json({
     success: false,

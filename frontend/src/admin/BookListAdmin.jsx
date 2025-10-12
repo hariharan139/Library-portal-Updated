@@ -141,50 +141,56 @@ const BookListAdmin = () => {
       setSelectedBooks(filteredBooks.map((book) => book._id));
     }
   };
-
+  const categoryCounts = books.reduce(
+    (acc, book) => {
+      acc[book.category] = (acc[book.category] || 0) + 1;
+      return acc;
+    },
+    { all: books.length }
+  );
   const categories = [
     { value: "all", label: "All Categories", icon: "📚", count: books.length },
     {
       value: "Mechanical",
       label: "Mechanical",
       icon: "⚙️",
-      count: books.filter((b) => b.category === "Mechanical").length,
+      count: categoryCounts["Mechanical"] || 0,
     },
     {
       value: "Electrical",
       label: "Electrical",
       icon: "⚡",
-      count: books.filter((b) => b.category === "Electrical").length,
+      count: categoryCounts["Electrical"] || 0,
     },
     {
       value: "Business",
       label: "Business",
       icon: "💼",
-      count: books.filter((b) => b.category === "Business").length,
+      count: categoryCounts["Business"] || 0,
     },
     {
       value: "Non-fiction",
       label: "Non-fiction",
       icon: "📖",
-      count: books.filter((b) => b.category === "Non-fiction").length,
+      count: categoryCounts["Non-fiction"] || 0,
     },
     {
       value: "Fiction",
       label: "Fiction",
       icon: "📚",
-      count: books.filter((b) => b.category === "Fiction").length,
+      count: categoryCounts["Fiction"] || 0,
     },
     {
       value: "Science",
       label: "Science",
       icon: "🔬",
-      count: books.filter((b) => b.category === "Science").length,
+      count: categoryCounts["Science"] || 0,
     },
     {
       value: "Technology",
       label: "Technology",
       icon: "💻",
-      count: books.filter((b) => b.category === "Technology").length,
+      count: categoryCounts["Technology"] || 0,
     },
   ];
 

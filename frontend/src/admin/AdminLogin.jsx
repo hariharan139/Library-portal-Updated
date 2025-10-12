@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import { useAuth } from "../context/AuthContext";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
+  const { loginAdmin } = useAuth(); // ✅ use AuthContext for immediate updates
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -11,6 +13,7 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Handle input change
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -19,6 +22,7 @@ const AdminLogin = () => {
     setError("");
   };
 
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -26,14 +30,15 @@ const AdminLogin = () => {
 
     try {
       const response = await axiosInstance.post("/admin/login", formData);
+
       if (response.data.success) {
-        localStorage.setItem("adminLoggedIn", "true");
-        navigate("/admin/dashboard");
+        loginAdmin(); // ✅ Update context immediately
+        navigate("/admin/dashboard"); // Navigate to dashboard
       } else {
         setError("Invalid credentials");
       }
-    } catch (error) {
-      setError(error.response?.data?.message || "Login failed");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }

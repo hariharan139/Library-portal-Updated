@@ -1,7 +1,3 @@
-// ============================================
-// FILE 1: models/Student.js
-// Complete Student Model with Password Hashing
-// ============================================
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
@@ -33,7 +29,7 @@ const studentSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please add a password"],
       minlength: 6,
-      select: false, // Don't return password by default
+      select: false,
     },
     dept: {
       type: String,
@@ -56,22 +52,13 @@ const studentSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-// Encrypt password using bcrypt before saving
 studentSchema.pre("save", async function (next) {
-  // Only hash the password if it has been modified (or is new)
   if (!this.isModified("password")) {
     next();
   }
-
-  // Generate salt
   const salt = await bcrypt.genSalt(10);
-
-  // Hash password
   this.password = await bcrypt.hash(this.password, salt);
 });
-
-// Method to compare entered password with hashed password
 studentSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

@@ -1,21 +1,19 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
 const StudentLogin = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const { loginStudent } = useAuth(); // ✅ AuthContext for immediate update
+
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
   };
 
@@ -27,17 +25,17 @@ const StudentLogin = () => {
     try {
       const response = await axiosInstance.post("/auth/login", formData);
 
-      // Store token and student info
-      localStorage.setItem("studentToken", response.data.token);
-      localStorage.setItem(
-        "studentInfo",
-        JSON.stringify(response.data.student)
-      );
+      const studentData = response.data.student;
+      const token = response.data.token;
+
+      // Update AuthContext
+      loginStudent(studentData, token);
 
       alert("Login successful!");
-      navigate("/student/dashboard");
-    } catch (error) {
-      setError(error.response?.data?.message || "Login failed");
+      navigate("/student/dashboard"); // redirect to dashboard
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
+    } finally {
       setLoading(false);
     }
   };

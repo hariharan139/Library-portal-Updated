@@ -170,8 +170,6 @@ const AdminDashboard = () => {
                   <td>
                     {borrow.studentId ? borrow.studentId.studentId : "N/A"}
                   </td>
-                  <td>{borrow.studentId.name}</td>
-                  <td>{borrow.studentId.studentId}</td>
                   <td>{formatDate(borrow.issueDate)}</td>
                   <td>{formatDate(borrow.returnDate)}</td>
                 </tr>

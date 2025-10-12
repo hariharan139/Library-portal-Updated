@@ -175,7 +175,7 @@ exports.getMyBorrowedBooks = async (req, res) => {
 // ✅ Get logged-in student's borrow history (all)
 exports.getMyHistory = async (req, res) => {
   try {
-    const studentId = req.user.id;
+    const studentId = req.student._id;
 
     const history = await Borrow.find({ studentId })
       .populate("bookId")
@@ -188,5 +188,41 @@ exports.getMyHistory = async (req, res) => {
       message: "Error fetching history",
       error: error.message,
     });
+  }
+};
+exports.returnBook = async (req, res) => {
+  try {
+    const { borrowId } = req.params;
+
+    const borrow = await Borrow.findById(borrowId).populate("bookId");
+    if (!borrow) {
+      return res.status(404).json({ message: "Borrow record not found" });
+    }
+
+    if (borrow.status === "returned") {
+      return res.status(400).json({ message: "Book already returned" });
+    }
+
+    borrow.status = "returned";
+    borrow.actualReturnDate = new Date();
+    await borrow.save();
+
+    // Increment availableCopies
+    const book = borrow.bookId;
+    book.availableCopies += 1;
+    await book.save();
+
+    const returnedOnTime = borrow.actualReturnDate <= borrow.returnDate;
+
+    res.json({
+      message: "Book returned successfully",
+      returnedOnTime,
+      borrow,
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Error returning book", error: error.message });
   }
 };
